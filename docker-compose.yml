@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: featurehub_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-platform_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platform_secure_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-featurehub}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-platform_admin} -d ${POSTGRES_DB:-featurehub}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: featurehub_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  featurehub-api:
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile.api
+    container_name: featurehub_api
+    command: uvicorn featurehub.api.main:app --host 0.0.0.0 --port 8000
+    environment:
+      - ENVIRONMENT=production
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  featurehub-dashboard:
+    build:
+      context: .
+      dockerfile: infrastructure/Dockerfile.dashboard
+    container_name: featurehub_dashboard
+    command: streamlit run apps/dashboard/app.py --server.port=8501 --server.address=0.0.0.0
+    environment:
+      - REDIS_HOST=redis
+      - API_URL=http://featurehub-api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - featurehub-api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
