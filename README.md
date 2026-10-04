@@ -57,6 +57,12 @@
 - Visual inspection of online features in Redis.
 - Feature distribution graphs, entity drift tracking, and serving latency metrics.
 
+### 6. Unified Data Platform Dashboard (Phase J)
+- **Unified Observability Console**: Polished single-pane-of-glass dashboard (`apps/unified-dashboard/`) combining FeatureHub real-time ML serving with DataGuard contract & quality governance.
+- **12 Primary Pages**: Platform Overview, Pipeline Operations, FeatureHub Explorer (122 features across 6 groups), Online Store Latency Monitor, Point-in-Time Join Leakage Prevention Demo, Real-Time ML Prediction, DataGuard Contract Explorer, Interactive Schema Diff, Great Expectations Quality Trends, Column-Level Lineage Graph, Operational Incident Center, CI/CD Pre-Merge Gate, Unified Benchmarks, and Infrastructure Health Monitor.
+- **Zero Mock Metrics**: Real Redis latency measurements, feature registry queries, and verified benchmark artifacts.
+- See [`docs/architecture/unified-dashboard.md`](docs/architecture/unified-dashboard.md), [`docs/demos/unified-dashboard.md`](docs/demos/unified-dashboard.md), and [`docs/UNIFIED_DASHBOARD_VALIDATION.md`](docs/UNIFIED_DASHBOARD_VALIDATION.md).
+
 ---
 
 ## Architecture Diagram
